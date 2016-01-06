@@ -60,7 +60,7 @@
     this._addFigures();
 
     // Load textures
-    this._loadImage('../xamp23.png', function (image) {
+    this._loadImage('../text.png', function (image) {
       self._texture[0].setImage(image);
       self._texture[1].setPixel(new Uint8Array([255, 0, 0, 255]));
 

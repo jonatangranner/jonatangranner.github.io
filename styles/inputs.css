@@ -1,0 +1,31 @@
+header {
+  padding: 10px;
+  width: 500px;
+  overflow: hidden;
+  margin: 0 auto;
+}
+header h4 {
+  margin: 0;
+  text-align: center;
+}
+header label {
+  display: block;
+}
+header label span {
+  font-size: 10pt;
+  display: inline-block;
+}
+header .settings-group {
+  float: left;
+  height: 120px;
+  border-right: 1px solid #CCC;
+  padding: 5px 10px;
+  box-sizing: border-box;
+}
+header .settings-group:last-of-type {
+  border-right: none;
+}
+
+input[type=number] {
+  width: 40px;
+}

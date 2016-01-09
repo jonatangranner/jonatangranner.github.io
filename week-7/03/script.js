@@ -2,10 +2,10 @@
   'use strict';
 
   function Draw() {
-    const self = this;
+    var self = this;
 
     // Get context
-    const canvas = document.querySelector('canvas');
+    var canvas = document.querySelector('canvas');
     this._gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
 
     // Enable depth test, this allows one to remove hidden surfaces
@@ -21,9 +21,9 @@
     this._gl.useProgram(this._program);
 
     // get attributes
-    const uTexMap = this._gl.getUniformLocation(this._program, "texMap");
-    const aPosition = this._gl.getAttribLocation(this._program, "aPosition");
-    const aTexCoord = this._gl.getAttribLocation(this._program, "aTexCoord");
+    var uTexMap = this._gl.getUniformLocation(this._program, "texMap");
+    var aPosition = this._gl.getAttribLocation(this._program, "aPosition");
+    var aTexCoord = this._gl.getAttribLocation(this._program, "aTexCoord");
 
     // Intialize buffers
     this._geometries = [
@@ -38,25 +38,25 @@
     ];
 
     // Model view
-    const M = translate(-0.0, -0.0, -0.0);
+    var M = translate(-0.0, -0.0, -0.0);
 
-    const eye = vec3(0.0, 0.0, 1);
-    const at = vec3(0.0, 0.0, 0.0);
-    const up = vec3(0.0, 1.0, 0.0);
-    const V = lookAt(eye, at, up);
+    var eye = vec3(0.0, 0.0, 1);
+    var at = vec3(0.0, 0.0, 0.0);
+    var up = vec3(0.0, 1.0, 0.0);
+    var V = lookAt(eye, at, up);
 
-    const P = perspective(90, 1, 0.01, 30.0);
+    var P = perspective(90, 1, 0.01, 30.0);
 
     this._screenV = V;
     this._shadowV = mat4();
 
     // Bind model uniforms
-    const uM = this._gl.getUniformLocation(this._program, "uM");
+    var uM = this._gl.getUniformLocation(this._program, "uM");
     this._gl.uniformMatrix4fv(uM, false, flatten(M));
 
     this._uV = this._gl.getUniformLocation(this._program, "uV");
 
-    const uP = this._gl.getUniformLocation(this._program, "uP");
+    var uP = this._gl.getUniformLocation(this._program, "uP");
     this._gl.uniformMatrix4fv(uP, false, flatten(P));
 
     // Shadow color uniform
@@ -76,7 +76,7 @@
   }
 
   Draw.prototype._loadImage = function (src, callback) {
-    const image = new Image();
+    var image = new Image();
     image.addEventListener('load', function() {
       callback(image);
     });
@@ -84,17 +84,17 @@
   };
 
   Draw.prototype._addGround = function () {
-    const shapeA = vec3(-2, -1, -5);
-    const shapeB = vec3(2, -1, -5);
-    const shapeC = vec3(2, -1, -1);
-    const shapeD = vec3(-2, -1, -1);
+    var shapeA = vec3(-2, -1, -5);
+    var shapeB = vec3(2, -1, -5);
+    var shapeC = vec3(2, -1, -1);
+    var shapeD = vec3(-2, -1, -1);
 
-    const textureA = vec2(-2, -5);
-    const textureB = vec2(2, -5);
-    const textureC = vec2(2, -1);
-    const textureD = vec2(-2, -1);
+    var textureA = vec2(-2, -5);
+    var textureB = vec2(2, -5);
+    var textureC = vec2(2, -1);
+    var textureD = vec2(-2, -1);
 
-    const rect = new Rect(
+    var rect = new Rect(
       [shapeA, shapeB, shapeC, shapeD],
       [textureA, textureB, textureC, textureD]
     );
@@ -106,33 +106,16 @@
     //
     // Figure 1
     //
-    const rectA = (function () {
-      const shapeA = vec3(0.25, -0.5, -1.75);
-      const shapeB = vec3(0.75, -0.5, -1.75);
-      const shapeC = vec3(0.75, -0.5, -1.25);
-      const shapeD = vec3(0.25, -0.5, -1.25);
+    var rectA = (function () {
+      var shapeA = vec3(0.25, -0.5, -1.75);
+      var shapeB = vec3(0.75, -0.5, -1.75);
+      var shapeC = vec3(0.75, -0.5, -1.25);
+      var shapeD = vec3(0.25, -0.5, -1.25);
 
-      const textureA = vec2(0.25, -1.75);
-      const textureB = vec2(0.75, -1.75);
-      const textureC = vec2(0.75, -1.25);
-      const textureD = vec2(0.25, -1.25);
-
-      return new Rect(
-        [shapeA, shapeB, shapeC, shapeD],
-        [textureA, textureB, textureC, textureD]
-      );
-    })();
-
-    const rectB = (function () {
-      const shapeA = vec3(-1, +0, -3);
-      const shapeB = vec3(-1, -1, -3);
-      const shapeC = vec3(-1, -1, -2.5);
-      const shapeD = vec3(-1, +0, -2.5);
-
-      const textureA = vec2(+0, -3);
-      const textureB = vec2(-1, -3);
-      const textureC = vec2(-1, -2.5);
-      const textureD = vec2(+0, -2.5);
+      var textureA = vec2(0.25, -1.75);
+      var textureB = vec2(0.75, -1.75);
+      var textureC = vec2(0.75, -1.25);
+      var textureD = vec2(0.25, -1.25);
 
       return new Rect(
         [shapeA, shapeB, shapeC, shapeD],
@@ -140,18 +123,35 @@
       );
     })();
 
-    const collection = new Collection([rectA, rectB]);
+    var rectB = (function () {
+      var shapeA = vec3(-1, +0, -3);
+      var shapeB = vec3(-1, -1, -3);
+      var shapeC = vec3(-1, -1, -2.5);
+      var shapeD = vec3(-1, +0, -2.5);
+
+      var textureA = vec2(+0, -3);
+      var textureB = vec2(-1, -3);
+      var textureC = vec2(-1, -2.5);
+      var textureD = vec2(+0, -2.5);
+
+      return new Rect(
+        [shapeA, shapeB, shapeC, shapeD],
+        [textureA, textureB, textureC, textureD]
+      );
+    })();
+
+    var collection = new Collection([rectA, rectB]);
     this._geometries[1].setFigure(collection);
   };
 
   Draw.prototype.setLightSource = function (light) {
-    const yplane = -1;
-    const m = mat4(); // Shadow projection matrix initially an identity matrix
+    var yplane = -1;
+    var m = mat4(); // Shadow projection matrix initially an identity matrix
           m[3][3] = 0.0;
           m[3][1] = -1.0/(light[1] - yplane);
 
-    const t_forward = translate(light[0], light[1], light[2]);
-    const t_backward = translate(-light[0], -light[1], -light[2]);
+    var t_forward = translate(light[0], light[1], light[2]);
+    var t_backward = translate(-light[0], -light[1], -light[2]);
 
     this._shadowV = mult(this._screenV, mult(mult(t_forward, m), t_backward));
   }
@@ -267,15 +267,15 @@
     this.size = this.shapeVetrices.length;
   }
 
-  const draw = new Draw();
-  const msPrRotation = 10000;
+  var draw = new Draw();
+  var msPrRotation = 10000;
 
   function render(timestamp) {
     // Calculate theta (radian angle)
-    const ratio = (timestamp % msPrRotation) / msPrRotation;
-    const theta = (ratio * 2 - 1) * Math.PI;
+    var ratio = (timestamp % msPrRotation) / msPrRotation;
+    var theta = (ratio * 2 - 1) * Math.PI;
 
-    const light = vec3(
+    var light = vec3(
       0 + Math.cos(theta) * 2,
       2,
       -2 + Math.sin(theta) * 2

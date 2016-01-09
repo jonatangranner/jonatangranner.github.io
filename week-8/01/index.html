@@ -2,7 +2,7 @@
 <html>
 
 <meta charset="utf8">
-<title>Week 7 - Part 4</title>
+<title>Week 8 - Part 1</title>
 <script id="vertex-shader" type="x-shader/x-vertex">
 precision mediump float;
 
@@ -18,7 +18,6 @@ void main() {
   gl_Position = uP * uV * uM * vec4(aPosition, 1);
 }
 
-
 </script>
 
 <script id="fragment-shader" type="x-shader/x-fragment">
@@ -27,22 +26,39 @@ precision mediump float;
 
 varying vec2 fTexCoord;
 uniform sampler2D texMap;
-uniform int isShadow;
 
 void main() {
-  if (isShadow == 1) {
-    gl_FragColor = vec4(0, 0, 0, 0.85);
-  } else {
-    gl_FragColor = texture2D(texMap, fTexCoord);
-  }
+  gl_FragColor = texture2D(texMap, fTexCoord);
 }
-
 
 </script>
 <script src="../../scripts/MV.js"></script>
 <script src="../../scripts/initShaders.js"></script>
 
-
+<div class="settings-group light">
+	<h4>Light</h4>
+	<label>
+		<span>k<sub>a</sub>:</span>
+		<input type="number" value="0.2" id="ka" min="0" max="1" step="0.1">
+	</label>
+	<label>
+		<span>k<sub>d</sub>:</span>
+		<input type="number" value="0.7" id="kd" min="0" max="1" step="0.1">
+	</label>
+	<label>
+		<span>k<sub>s</sub>:</span>
+		<input type="number" value="0.5" id="ks" min="0" max="1" step="0.1">
+	</label>
+	<label>
+		<span>α:</span>
+		<input type="number" value="100" id="alpha" min="0" max="500" step="1">
+	</label>
+</div>
+<div class="settings-group">
+	<h4>Animation</h4>
+	<button id="movement">Stop movement</button>
+	<button id="light">Turn light off</button>
+</div>
 
 <canvas width="500" height="500">
   Oops ... your browser doesn't support the HTML5 canvas element
@@ -52,3 +68,6 @@ void main() {
 <script src="script.js"></script>
 
 </html>
+
+<!DOCTYPE html>
+<html>

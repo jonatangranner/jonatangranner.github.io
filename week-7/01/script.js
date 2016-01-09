@@ -14,7 +14,7 @@
     this._gl.clearColor(0.3921, 0.5843, 0.9294, 1.0);
 
     // Load sharders
-    this._program = initShaders( gl, "vertex-shader", "fragment-shader" );
+    this._program = initShaders( this._gl, "vertex-shader", "fragment-shader" );
     //this._program = initShaders(this._gl, "vshader.glsl", "fshader.glsl");
     this._gl.useProgram(this._program);
 

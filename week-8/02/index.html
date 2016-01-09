@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<meta charset="utf8">
+<title>Week 8 - Part 2</title>
+<script src="../../scripts/MV.js"></script>
+<script src="../../scripts/initExtShaders.js"></script>
+<script src="../../scripts/OBJParser.js"></script>
+
+<div class="settings-group light">
+	<h4>Light</h4>
+	<label>
+		<span>k<sub>a</sub>:</span>
+		<input type="number" value="0.2" id="ka" min="0" max="1" step="0.1">
+	</label>
+	<label>
+		<span>k<sub>d</sub>:</span>
+		<input type="number" value="0.7" id="kd" min="0" max="1" step="0.1">
+	</label>
+	<label>
+		<span>k<sub>s</sub>:</span>
+		<input type="number" value="0.5" id="ks" min="0" max="1" step="0.1">
+	</label>
+	<label>
+		<span>α:</span>
+		<input type="number" value="100" id="alpha" min="0" max="500" step="1">
+	</label>
+</div>
+<div class="settings-group">
+	<h4>Animation</h4>
+	<button id="movement">Stop movement</button>
+	<button id="light">Turn light off</button>
+</div>
+
+<canvas width="500" height="500">
+  Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+
+
+<script src="script.js"></script>
+
+</html>
+
+<!DOCTYPE html>
+<html>

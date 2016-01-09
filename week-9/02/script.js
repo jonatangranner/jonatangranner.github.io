@@ -6,7 +6,7 @@
 
     // Get context
     var canvas = document.querySelector('canvas');
-    this._gl = canvas.getContext("webgl", { alpha: true }) || canvas.getContext("experimental-webgl", { alpha: true });
+    this._gl = canvas.getContext("webgl", { alpha: false }) || canvas.getContext("experimental-webgl", { alpha: false });
 
     // Enable depth test, this allows one to remove hidden surfaces
     this._gl.enable(this._gl.DEPTH_TEST);
@@ -49,17 +49,17 @@
 
     // Model view
     var screenV = (function () {
-    var eye = vec3(0.0, 0.0, 1);
-    var at = vec3(0.0, 0.0, -3.0);
-    var up = vec3(0.0, 1.0, 0.0);
+      var eye = vec3(0.0, 0.0, 1);
+      var at = vec3(0.0, 0.0, -3.0);
+      var up = vec3(0.0, 1.0, 0.0);
       return lookAt(eye, at, up);
     })();
 
     var debugV = (function () {
-    var eye = vec3(0.0, 2.0, -3.001);
-    var at = vec3(0.0, 0.0, -3.0);
-    var up = vec3(0.0, 1.0, 0.0);
-    return lookAt(eye, at, up);
+      var eye = vec3(0.0, 2.0, -3.001);
+      var at = vec3(0.0, 0.0, -3.0);
+      var up = vec3(0.0, 1.0, 0.0);
+      return lookAt(eye, at, up);
     })();
 
     var P = perspective(65, 1, 0.01, 30.0);
@@ -197,18 +197,6 @@
     this._gl.viewport(0, 0, this._size[0], this._size[1]);
     this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
 
-    // Draw ground
-    /*
-    this._program.texture.use();
-
-    this._geometries.ground.bindAttributes(this._program.texture);
-    this._gl.uniformMatrix4fv(this._uGroundLightV, false, flatten(this._lightV));
-    this._texture[0].bindUniform();
-    this._texture[1].bindUniform();
-
-    this._gl.drawArrays(this._gl.TRIANGLES, 0, this._geometries.ground.vetricesCount);
-    */
-
     // Draw figure
     this._program.figure.use();
 
@@ -230,6 +218,17 @@
     this._gl.uniformMatrix4fv(this._uFigureM, false, flatten(this._figureM));
 
     this._gl.drawElements(this._gl.TRIANGLES, this._geometries.figure.vetricesCount, this._gl.UNSIGNED_SHORT, 0);
+
+    // Draw ground
+    this._program.texture.use();
+
+    this._geometries.ground.bindAttributes(this._program.texture);
+    this._gl.uniformMatrix4fv(this._uGroundLightV, false, flatten(this._lightV));
+    this._texture[0].bindUniform();
+    this._texture[1].bindUniform();
+
+    this._gl.drawArrays(this._gl.TRIANGLES, 0, this._geometries.ground.vetricesCount);
+
   };
 
   //

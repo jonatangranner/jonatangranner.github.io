@@ -9,6 +9,9 @@
     this._gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
 
 
+    // Enable depth test, this allows one to remove hidden surfaces
+    // this._gl.enable(this._gl.DEPTH_TEST);
+
     // Set viewport and background color
     this._gl.viewport(0, 0, canvas.width, canvas.height);
     this._gl.clearColor(0.3921, 0.5843, 0.9294, 1.0);
@@ -44,12 +47,14 @@
 
     var P = perspective(90, 1, 0.01, 30.0);
 
+    this._screenV = V;
+    this._shadowV = mat4();
+
     // Bind model uniforms
     var uM = this._gl.getUniformLocation(this._program, "uM");
     this._gl.uniformMatrix4fv(uM, false, flatten(M));
 
-    var uV = this._gl.getUniformLocation(this._program, "uV");
-    this._gl.uniformMatrix4fv(uV, false, flatten(V));
+    this._uV = this._gl.getUniformLocation(this._program, "uV");
 
     var uP = this._gl.getUniformLocation(this._program, "uP");
     this._gl.uniformMatrix4fv(uP, false, flatten(P));
@@ -136,15 +141,34 @@
     this._geometries[1].setFigure(collection);
   };
 
+  Draw.prototype.setLightSource = function (light) {
+    var yplane = -1;
+    var m = mat4(); // Shadow projection matrix initially an identity matrix
+          m[3][3] = 0.0;
+          m[3][1] = -1.0/(light[1] - yplane);
+
+    var t_forward = translate(light[0], light[1], light[2]);
+    var t_backward = translate(-light[0], -light[1], -light[2]);
+
+    this._shadowV = mult(this._screenV, mult(mult(t_forward, m), t_backward));
+  }
+
   Draw.prototype.render = function () {
     this._gl.clear(this._gl.COLOR_BUFFER_BIT);
 
     this._texture[0].bindUniform();
     this._geometries[0].bindAttributes();
+
+    this._gl.uniformMatrix4fv(this._uV, false, flatten(this._screenV));
     this._gl.drawArrays(this._gl.TRIANGLES, 0, this._geometries[0].vetricesCount);
 
     this._texture[1].bindUniform();
     this._geometries[1].bindAttributes();
+
+    this._gl.uniformMatrix4fv(this._uV, false, flatten(this._shadowV));
+    this._gl.drawArrays(this._gl.TRIANGLES, 0, this._geometries[1].vetricesCount);
+
+    this._gl.uniformMatrix4fv(this._uV, false, flatten(this._screenV));
     this._gl.drawArrays(this._gl.TRIANGLES, 0, this._geometries[1].vetricesCount);
   };
 
@@ -233,7 +257,26 @@
   }
 
   var draw = new Draw();
-  draw.onready = function () {
+  var msPrRotation = 10000;
+
+  function render(timestamp) {
+    // Calculate theta (radian angle)
+    var ratio = (timestamp % msPrRotation) / msPrRotation;
+    var theta = (ratio * 2 - 1) * Math.PI;
+
+    var light = vec3(
+      0 + Math.cos(theta) * 2,
+      2,
+      -2 + Math.sin(theta) * 2
+    );
+
+    draw.setLightSource(light);
     draw.render();
+
+    window.requestAnimationFrame(render);
   };
+
+  draw.onready = function () {
+    window.requestAnimationFrame(render);
+  }
 })();

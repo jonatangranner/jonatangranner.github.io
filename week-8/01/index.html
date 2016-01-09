@@ -3,37 +3,9 @@
 
 <meta charset="utf8">
 <title>Week 8 - Part 1</title>
-<script id="vertex-shader" type="x-shader/x-vertex">
-precision mediump float;
-
-attribute vec3 aPosition;
-attribute vec2 aTexCoord;
-uniform   mat4 uM;
-uniform   mat4 uV;
-uniform   mat4 uP;
-varying vec2 fTexCoord;
-
-void main() {
-  fTexCoord = aTexCoord;
-  gl_Position = uP * uV * uM * vec4(aPosition, 1);
-}
-
-</script>
-
-<script id="fragment-shader" type="x-shader/x-fragment">
-
-precision mediump float;
-
-varying vec2 fTexCoord;
-uniform sampler2D texMap;
-
-void main() {
-  gl_FragColor = texture2D(texMap, fTexCoord);
-}
-
-</script>
 <script src="../../scripts/MV.js"></script>
-<script src="../../scripts/initShaders.js"></script>
+<script src="../../scripts/initExtShaders.js"></script>
+<script src="../../scripts/OBJParser.js"></script>
 
 <div class="settings-group light">
 	<h4>Light</h4>

@@ -109,7 +109,7 @@
 
       self._geometries.figure.setFigure(figure);
 
-      self._loadImage('../xamp23.png', function (image) {
+      self._loadImage('../text.png', function (image) {
         self._texture[1].setImage(image);
 
         self.onready();

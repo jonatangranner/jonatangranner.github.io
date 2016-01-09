@@ -1,10 +1,20 @@
 precision mediump float;
 
+uniform sampler2D shadowMap;
 uniform   float u_ka, u_kd, u_ks, u_alpha;
 varying   vec3  matrialColor, pos, normal, light;
+varying   vec4 positionFromLight;
 
 const float u_L = 1.0;
 const vec3 lightColor = vec3(1.0, 1.0, 1.0);
+
+// http://stackoverflow.com/questions/18453302/how-do-you-pack-one-32bit-int-into-4-8bit-ints-in-glsl-webgl
+const vec4 bitSh = vec4(256. * 256. * 256., 256. * 256., 256., 1.);
+const vec4 bitShifts = vec4(1.) / bitSh;
+
+float unpack (vec4 color) {
+    return dot(color, bitShifts);
+}
 
 void main() {
   vec3 E = normalize(pos); // eye vector
@@ -31,6 +41,14 @@ void main() {
   }
 
   // Sum up light contributions
-  gl_FragColor.xyz = ambient + diffuse + specular;
-  gl_FragColor.a = 1.0;
+  vec4 color = vec4(ambient + diffuse + specular, 1.0);
+
+  // Is in shadow
+  vec3 shadowCoord = (positionFromLight.xyz / positionFromLight.w) * 0.5 + 0.5;
+  vec4 rgbaDepth = texture2D(shadowMap, shadowCoord.xy);
+  float depth = unpack(rgbaDepth);
+  float visibility = (shadowCoord.z > depth + 0.0005) ? 0.3 : 1.0;
+
+  // Set color
+  gl_FragColor = vec4(color.rgb * visibility, color.a);
 }

@@ -3,8 +3,10 @@ precision mediump float;
 attribute vec3 aPosition, aNormal;
 attribute vec4 aColor;
 uniform   mat4 uM, uV, uP;
-varying   vec3 matrialColor, normal, pos, light;
+uniform   mat4 uLightV;
 uniform   vec4 lightDirection;
+varying   vec3 matrialColor, normal, pos, light;
+varying   vec4 positionFromLight;
 
 void main() {
   // Calculate material color
@@ -16,5 +18,6 @@ void main() {
   light = (uV * uM * (-lightDirection)).xyz;
 
   // Set position
+  positionFromLight = uP * uLightV * uM * vec4(aPosition, 1);
   gl_Position = uP * uV * uM * vec4(aPosition, 1);
 }

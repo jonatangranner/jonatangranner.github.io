@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Week 4 - 05</title>
+    <meta charset="utf-8" />
+
+    <!-- Vertex shader -->
+    <script id="vShader" type="x-shader/x-vertex">
+        attribute vec4 vPosition;
+        attribute vec4 vNormal;
+
+		varying vec3 fColor;
+		varying vec3 fPosition;
+		varying vec3 fNormal;
+
+        uniform mat4 modelView;
+        uniform mat4 projection;
+
+        void main() {
+		    fColor = (0.5 * vPosition + 0.5).xyz;
+			fPosition = vPosition.xyz;
+			fNormal = vNormal.xyz;
+			
+            gl_Position = projection * modelView * vPosition;
+        }
+
+    </script>
+
+    <!-- Fragment shader -->
+    <script id="fShader" type="x-shader/x-fragment">
+        precision mediump float;
+        varying vec3 fColor;
+		varying vec3 fPosition;
+		varying vec3 fNormal;
+
+		uniform vec4 lightPos;
+	    uniform vec3 L;
+	    uniform vec3 eye;
+        uniform float Ka;
+	    uniform float Kd;
+	    uniform float Ks;
+	    uniform float alpha;
+		
+        void main() {
+		    vec3 v = normalize(eye - fPosition);
+		    vec3 l = normalize(-lightPos.xyz);
+		    vec3 n = normalize(fNormal);
+		    vec3 r = reflect(-l, n);
+			
+		    float cos_theta = dot(l, n);
+		    float cos_phi = dot(r, v);
+			
+		    vec3 ambient = Ka * L * fColor;
+		    vec3 diffuse = Kd * max(cos_theta, 0.0) * L * fColor;
+		    vec3 specular = Ks * pow(max(cos_phi, 0.0), alpha) * L * fColor;	
+		    gl_FragColor = vec4(ambient + diffuse + specular, 1.0);
+        }
+
+    </script>
+
+    <script type="text/javascript" src="../../common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../../common/initShaders.js"></script>
+    <script type="text/javascript" src="../../common/MV.js"></script>
+    <script type="text/javascript" src="../../common/OBJParser.js"></script>
+    <script type="text/javascript" src="script.js"></script>
+
+
+</head>
+<body>
+    <h2>Week 4: Exercise 05</h2>
+    <canvas id="gl-canvas" width="500" height="500">
+        Oops... WebGL is not supported.
+    </canvas>
+    <div>
+        <button id="btnInc">Increment count</button>
+        <button id="btnDec">Decrement count</button>
+    </div>
+    <div>
+        Ambiance 0.0
+        <input id="ambiance" type="range" min="0.0" max="1.0" step="0.1" value="0.5" />
+        1.0
+    </div>
+    <div>
+        Diffuse 0.0
+        <input id="diffuse" type="range" min="0.0" max="1.0" step="0.1" value="0.5" />
+        1.0
+    </div>
+    <div>
+        Specular 0.0
+        <input id="specular" type="range" min="0.0" max="1.0" step="0.1" value="0.5" />
+        1.0
+    </div>
+    <div>
+        Shine 0
+        <input id="shine" type="range" min="0" max="200" step="20" value="100" />
+        200
+    </div>
+    <div>
+        Light Emission 0.0
+        <input id="lightEmi" type="range" min="0.0" max="2.0" step="0.2" value="1.0" />
+        2.0
+    </div>
+</body>
+</html>

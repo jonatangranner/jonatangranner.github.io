@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Week 5 - 03</title>
+    <meta charset="utf-8" />
+
+    <!-- Vertex shader -->
+    <script id="vShader" type="x-shader/x-vertex">
+        attribute vec4 vPosition, vNormal, vColor;
+        
+        varying vec4 fColor;
+
+        uniform mat4 modelView, projection;
+
+        void main() { 
+            vec4 n = vNormal;   
+            gl_Position = projection * modelView * vPosition;
+            gl_PointSize = 10.0;
+            fColor = vColor;
+        }
+
+    </script>
+
+    <!-- Fragment shader -->
+    <script id="fShader" type="x-shader/x-fragment">
+        precision mediump float;
+        
+        varying vec4 fColor;
+
+        void main() {
+            gl_FragColor = fColor;
+        }
+
+    </script>
+
+
+    <script type="text/javascript" src="../../common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../../common/initShaders.js"></script>
+    <script type="text/javascript" src="../../common/MV.js"></script>
+    <script type="text/javascript" src="../../common/OBJParser.js"></script>
+    <script type="text/javascript" src="script.js"></script>
+
+
+</head>
+<body>
+    <h2>Week 5: Exercise 03</h2>
+    <canvas id="gl-canvas" width="500" height="500">
+        Oops... WebGL is not supported.
+    </canvas>
+</body>
+</html>
+

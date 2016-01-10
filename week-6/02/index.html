@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Week 6 - 01-02</title>
+    <meta charset="utf-8" />
+
+    <!-- Vertex shader -->
+    <script id="vShader" type="x-shader/x-vertex">
+        attribute vec4 vPosition;
+        attribute vec2 vTexCoord;
+        varying vec2 fTexCoord;
+        uniform mat4 projection;
+        
+        void main() {
+            fTexCoord = vTexCoord;
+            gl_Position = projection * vPosition;
+        }
+
+    </script>
+
+    <!-- Fragment shader -->
+    <script id="fShader" type="x-shader/x-fragment">
+        precision mediump float;
+        varying vec2 fTexCoord;
+        uniform sampler2D texMap;
+
+        void main() {
+            gl_FragColor = texture2D(texMap, fTexCoord);
+        }
+
+    </script>
+
+    <script type="text/javascript" src="../../common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../../common/initShaders.js"></script>
+    <script type="text/javascript" src="../../common/MV.js"></script>
+    <script type="text/javascript" src="../../common/OBJParser.js"></script>
+    <script type="text/javascript" src="script.js"></script>
+
+
+</head>
+<body>
+    <h2>Week 6: Exercise 02</h2>
+    <canvas id="gl-canvas" width="500" height="500">
+        Oops... WebGL is not supported.
+    </canvas>
+    <div>
+        Texture Wrapping Mode: 
+        <select id="wrapMode">
+            <option value="0">Repeat</option>
+            <option value="1">Clamp to edge</option>
+        </select>
+    </div>
+    <div>
+        Texture Filter Mode: 
+        <select id="filterMode">
+            <option value="0">Nearest</option>
+            <option value="1">Linear</option>
+            <option value="2">Mipmap</option>
+        </select>
+    </div>
+</body>
+</html>

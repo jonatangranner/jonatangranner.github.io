@@ -1,0 +1,85 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Week 08 - 01</title>
+    <meta charset="utf-8" />
+
+    <!-- Solid-color vertex shader -->
+    <script id="solid_vShader" type="x-shader/x-vertex">
+        attribute vec4 vPosition, vNormal, vColor;
+        varying vec4 fColor;
+        uniform mat4 modelView, projection;
+
+        void main() {
+            vec4 n = vNormal;
+            gl_Position = projection * modelView * vPosition;
+            fColor = vColor;
+        }
+
+    </script>
+
+    <!-- Solid-color fragment shader -->
+    <script id="solid_fShader" type="x-shader/x-fragment">
+        precision mediump float;
+        varying vec4 fColor;
+        uniform vec4 fVisible;
+
+        void main() {
+            gl_FragColor = fVisible * fColor;
+        }
+
+    </script>
+
+    <!-- Texture vertex shader -->
+    <script id="tex_vShader" type="x-shader/x-vertex">
+        attribute vec4 vPosition;
+        attribute vec2 vTexCoord;
+        varying vec2 fTexCoord;
+        uniform mat4 projection, modelView;
+
+        void main() {
+            fTexCoord = vTexCoord;
+            gl_Position = projection * modelView * vPosition;
+        }
+
+    </script>
+
+    <!-- Texture fragment shader -->
+    <script id="tex_fShader" type="x-shader/x-vertex">
+        precision mediump float;
+        varying vec2 fTexCoord;
+        uniform sampler2D texSampler;
+
+        void main() {
+            gl_FragColor = texture2D(texSampler, fTexCoord);
+        }
+
+    </script>
+
+
+    <script type="text/javascript" src="../../common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../../common/initShaders.js"></script>
+    <script type="text/javascript" src="../../common/MV.js"></script>
+    <script type="text/javascript" src="../../common/OBJParser.js"></script>
+    <script type="text/javascript" src="script.js"></script>
+
+
+</head>
+<body>
+    <h2>Week 8: Exercise 01</h2>
+    <canvas id="gl-canvas" width="500" height="500">
+        Oops... WebGL is not supported.
+    </canvas>
+    <div>     
+        <button id="teapotMotion">Teapot Motion</button>
+    </div>
+    <div>
+        <button id="topView">Top View</button>
+    </div>
+    <div>
+        <button id="lightMotion">Light Motion</button>
+    </div>
+    <img id="texImage" src="../../Textures/xamp23.png" hidden />
+</body>
+</html>
+

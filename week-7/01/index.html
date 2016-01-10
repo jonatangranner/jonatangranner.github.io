@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Week 7 - 01</title>
+    <meta charset="utf-8" />
+
+    <!-- Vertex shader -->
+    <script id="vShader" type="x-shader/x-vertex">
+        attribute vec4 vPosition;
+        attribute vec2 vTexCoord;
+        
+        varying vec2 fTexCoord;
+        
+        uniform mat4 projection;
+
+        void main() {
+            fTexCoord = vTexCoord;
+            gl_Position = projection * vPosition;
+        }
+
+    </script>
+
+    <!-- Fragment shader -->
+    <script id="fShader" type="x-shader/x-fragment">
+        precision mediump float;
+        
+        varying vec2 fTexCoord;
+        
+        uniform sampler2D tex0;
+
+        void main() {
+            gl_FragColor = texture2D(tex0, fTexCoord);
+        }
+
+    </script>
+
+    <script type="text/javascript" src="../../common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../../common/initShaders.js"></script>
+    <script type="text/javascript" src="../../common/MV.js"></script>
+    <script type="text/javascript" src="../../common/OBJParser.js"></script>
+    <script type="text/javascript" src="script.js"></script>
+
+
+</head>
+<body>
+    <h2>Week 7: Exercise 01</h2>
+    <canvas id="gl-canvas" width="500" height="500">
+        Oops... WebGL is not supported.
+    </canvas>
+    <img id="texImage" src="../../Textures/xamp23.png" hidden />
+</body>
+</html>

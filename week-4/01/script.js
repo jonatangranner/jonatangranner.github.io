@@ -15,11 +15,11 @@ var va = vec4(0.0, 0.0, 1.0, 1);
 var vb = vec4(0.0, 0.8, -0.3, 1);
 var vc = vec4(-0.8, -0.5, -0.3, 1);
 var vd = vec4(0.8, -0.5, -0.3, 1);
-var count = 3;
+var count = 1;
 
 var near = 0.3;
 var far = 10.0;
-var d = 5.0;
+var d = 3.0;
 var theta = 0.0;
 
 var fovy = 45.0;
@@ -40,9 +40,6 @@ function init() {
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.3921, 0.5843, 0.9294, 1.0);
 
-    gl.enable(gl.DEPTH_TEST);
-    gl.enable(gl.CULL_FACE);
-    gl.cullFace(gl.BACK);
 
     aspect = canvas.width / canvas.height;
 
@@ -97,10 +94,9 @@ function init() {
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    theta += 0.05;
-    var e_x = (Math.cos(theta) * eye[0]) + (-Math.sin(theta) * eye[2]);
-    var e_y = eye[1];
-    var e_z = (Math.sin(theta) * eye[0]) + (Math.cos(theta) * eye[2]);
+    var e_x = 0;
+    var e_y = 0;
+    var e_z = -5;
     mvMatrix = lookAt(vec3(e_x, e_y, e_z), at, up);
     pMatrix = perspective(fovy, aspect, near, far);
     gl.uniformMatrix4fv(modelView, false, flatten(mvMatrix));

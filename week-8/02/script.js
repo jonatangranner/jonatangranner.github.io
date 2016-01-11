@@ -7,9 +7,9 @@ var shadowProgram;
 window.onload = main;           
 
 
-const near = 1.0;
-const far = 100.0;
-const fovy = 45.0;
+var near = 1.0;
+var far = 100.0;
+var fovy = 45.0;
 var aspect;
 var viewMatrix, projectionMatrix;
 

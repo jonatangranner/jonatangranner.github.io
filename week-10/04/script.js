@@ -25,8 +25,8 @@ var fovy = 90.0;
 var aspect;
 var pMatrix;
 var eye = vec3(0.0, 0.0, 3.0);
-const at = vec3(0.0, 0.0, 0.0);
-const up = vec3(0.0, 1.0, 0.0);
+var at = vec3(0.0, 0.0, 0.0);
+var up = vec3(0.0, 1.0, 0.0);
 var mvMatrix;
 
 

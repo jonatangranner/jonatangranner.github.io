@@ -7,16 +7,19 @@
     <!-- Vertex shader -->
     <script id="vShader" type="x-shader/x-vertex">
         attribute vec4 vPosition;
+        attribute vec4 vColor;
         attribute vec2 vTexCoord;
         
         varying vec2 fTexCoord;
         
-        uniform mat4 projection;
+        uniform mat4 LookAtMatrix;
+        uniform mat4 PerspMatrix;
+        uniform mat4 ModelMatrix;
 
-        void main() {
+        void main(){
             fTexCoord = vTexCoord;
-            gl_Position = projection * vPosition;
-        }
+            gl_Position =  PerspMatrix * LookAtMatrix * ModelMatrix * vPosition;
+        } 
 
     </script>
 
@@ -26,10 +29,10 @@
         
         varying vec2 fTexCoord;
         
-        uniform sampler2D tex0;
+        uniform sampler2D texMap;
 
         void main() {
-            gl_FragColor = texture2D(tex0, fTexCoord);
+            gl_FragColor = texture2D(texMap, fTexCoord);
         }
 
     </script>
@@ -47,6 +50,6 @@
     <canvas id="gl-canvas" width="500" height="500">
         Oops... WebGL is not supported.
     </canvas>
-    <img id="texImage" src="../../Textures/xamp23.png" hidden />
+    <img id="ground" src="../../Textures/xamp23.png" hidden />
 </body>
 </html>

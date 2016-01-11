@@ -19,8 +19,8 @@ var fovy = 45.0;
 var aspect;
 var distance = 30;
 var eye = vec3(0.0, 0.0, -distance);
-const at = vec3(0.0, 3.0, 0.0);
-const up = vec3(0.0, 1.0, 0.0);
+var at = vec3(0.0, 3.0, 0.0);
+var up = vec3(0.0, 1.0, 0.0);
 var mvMatrix, pMatrix;
 var theta = 0.0;
 

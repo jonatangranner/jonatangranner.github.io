@@ -6,9 +6,9 @@ var texProgram;
 window.onload = main;           
 
 
-const near = 0.3;
-const far = 100.0;
-const fovy = 90.0;
+var near = 0.3;
+var far = 100.0;
+var fovy = 90.0;
 var aspect;
 var mvMatrix, pMatrix, CMVM;
 

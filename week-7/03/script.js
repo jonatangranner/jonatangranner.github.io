@@ -6,32 +6,33 @@ var redtex;
 window.onload = init;
 
 function init(){   
-    var va0 = vec4(-2.0,-1.0,2.0,1.0); var vb0 = vec4(2.0,-1.0,2.0,1.0); var vc0 = vec4(2.0,-1.0,-2.0,1.0); var vd0 = vec4(-2.0,-1.0,-2.0,1.0);
+    var va0 = vec4(-2.0,-1.0,1.0,1.0); var vb0 = vec4(2.0,-1.0,1.0,1.0); var vc0 = vec4(2.0,-1.0,-3.0,1.0); var vd0 = vec4(-2.0,-1.0,-3.0,1.0);
     var va1 = vec4(0.25,-0.5,-1.25,1.0); var vb1 = vec4(0.75,-0.5,-1.25,1.0); var vc1 = vec4(0.75,-0.5,-1.75,1.0); var vd1 = vec4(0.25,-0.5,-1.75,1.0);
-    var va2 = vec4(-1.0,-1.0,-2.5,1.0); var vb2 = vec4(-1.0,0.0,-2.5,1.0); var vc2 = vec4(-1.0,0.0,-3.0,1.0); var vd2 = vec4(-1.0,-1.0,-3.0,1.0);
+    var va2 = vec4(-1.0,-1.0,-2,1.0); var vb2 = vec4(-1.0,0.0,-2,1.0); var vc2 = vec4(-1.0,0.0,-3.0,1.0); var vd2 = vec4(-1.0,-1.0,-3.0,1.0);
     var vertices = [vb0,vc0,va0,vd0, 
                     vb1,vc1,va1,vd1, 
                     vb2,vc2,va2,vd2];
+    var shadow
     var ta = vec2(1.0, 0.0); var tb = vec2(1.0, 1.0); var tc = vec2(-1.0, 0.0); var td = vec2(-1.0, 1.0);
     var texCoords = [ta,tb,tc,td,
                      ta,tb,tc,td,
                      ta,tb,tc,td];
     canvas = document.getElementById("gl-canvas");
     gl = WebGLUtils.setupWebGL(canvas);
-    program = initShaders( gl, "vShader", "fShader" );
-    gl.useProgram(program); 
+
+    getShaders();
     
     initTexture();
 
     initBuffers(vertices,texCoords);
 
-    callback();
-}
-    
-function callback(){
     drawScene();
 }
     
+function getShaders() {
+    program = initShaders( gl, "vShader", "fShader" );
+    gl.useProgram(program); 
+}
     
 function initBuffers(vertices,texCoords) {
     PositionBuffer = gl.createBuffer();
@@ -101,7 +102,8 @@ function createTex(color) {
     }
     return tex;
 }
-    
+
+var ShadowMatrixLoc;
 function drawScene() {  
 
     gl.viewport(0, 0, 500,500);
@@ -111,6 +113,7 @@ function drawScene() {
     var PerspMatrixLoc = gl.getUniformLocation(program,'PerspMatrix');
     var ModelMatrixLoc = gl.getUniformLocation(program,'ModelMatrix');   
     var LookAtMatrixLoc = gl.getUniformLocation(program,'LookAtMatrix');
+    ShadowMatrixLoc = gl.getUniformLocation(program,'ShadowMatrix');
     
     var PerspMatrix = perspective(90,1,0.1,10);
     var ModelMatrix = mult(rotate(0,vec3(1,0,0)), translate(vec3(0,0,0)));
@@ -119,21 +122,47 @@ function drawScene() {
     gl.uniformMatrix4fv(ModelMatrixLoc,false,flatten(ModelMatrix)); 
     gl.uniformMatrix4fv(PerspMatrixLoc,false,flatten(PerspMatrix));
     gl.uniformMatrix4fv(LookAtMatrixLoc,false,flatten(LookAtMatrix));
-    
+
     render();
 }
 
+var phi = 0;
 function render(){
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    setTimeout(function() {
     
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.depthFunc(gl.LESS);
+    gl.uniformMatrix4fv(ShadowMatrixLoc,false,flatten(mat4())); 
+    gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, gl.Texture0);
     gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0); 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    
-    gl.bindTexture(gl.TEXTURE_2D, gl.Texture1);
-    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0); 
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, gl.Texture2);
+    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 2);
+    gl.depthFunc(gl.GREATER);   
+    var light = vec3(0+2*Math.cos(phi),2,-2+2*Math.sin(phi));
+    var minuslight = vec3(0-2*Math.cos(phi),-2,2-2*Math.sin(phi));//=-light
+    var ShadowMatrix = mat4();
+    ShadowMatrix[3][3]=0; 
+    ShadowMatrix[3][1]=1/(-2-1.01);
+    var ShadowTranslate = translate(minuslight);
+    var ShadowTranslateBack = translate(light);
+    ShadowMatrix = mult(ShadowTranslateBack, mult(ShadowMatrix, ShadowTranslate));
+    gl.uniformMatrix4fv(ShadowMatrixLoc,false,flatten(ShadowMatrix));   
     gl.drawArrays(gl.TRIANGLE_STRIP, 4, 4);
     gl.drawArrays(gl.TRIANGLE_STRIP, 8, 4);
+    gl.depthFunc(gl.LESS);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, gl.Texture1);
+    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 1);
+    gl.uniformMatrix4fv(ShadowMatrixLoc,false,flatten(mat4()))
+    gl.drawArrays(gl.TRIANGLE_STRIP, 4, 4);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 8, 4);
+    
+        requestAnimFrame(render);
+        phi+=0.1;
+    }, 100);
 }
     
 

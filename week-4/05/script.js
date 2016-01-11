@@ -19,7 +19,7 @@ var count = 3;
 
 var near = 0.3;
 var far = 10.0;
-var d = 3.0;
+var d = 5.0;
 var theta = 0.0;
 
 var fovy = 45.0;
@@ -28,8 +28,8 @@ var aspect;
 var mvMatrix, pMatrix;
 var modelView, projection;
 var eye = vec3(0.0, 0.0, -d);
-const at = vec3(0.0, 0.0, 0.0);
-const up = vec3(0.0, 1.0, 0.0);
+var at = vec3(0.0, 0.0, 0.0);
+var up = vec3(0.0, 1.0, 0.0);
 var ambient_c = 0.5;
 var diffuse_c = 0.5;
 var specular_c = 0.5;

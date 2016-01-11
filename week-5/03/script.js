@@ -55,7 +55,7 @@ function init() {
         return;
     }
 
-    readOBJFile('../../Objects/tank.obj', gl, model, 1, true);
+    readOBJFile('../../Objects/Tank.obj', gl, model, 1, true);
 
     render();
 }

@@ -2,218 +2,396 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Data demo</title>
+	<title>Exercises week 7</title>
 	<script src="js/d3.min.js"></script>
 	<style type="text/css">
 		.x-axis path, .y-axis path,
 		.x-axis line, .y-axis line {
 			fill: none;
-			stroke: black;
+			stroke: rgba(100,100,200,1);
 			shape-rendering: crispEdges;
 		}
 		
 		.x-axis text, .y-axis text {
 			font-family: sans-serif;
 			font-size: 10px;
+			color: rgba(100,100,200,0.7);
 		}
-		
-		h1 {
-			font-family: sans-serif;
-			font-weight: 300;
-			font-size: 16px;
-		}
-		
-		div.tooltip {
-		    position: absolute;
-		    max-width:200px;
-		    height:auto;
-		    padding:5px;
-		    background-color:white;
-		    border-radius:5px;
-		    box-shadow:4px 4px 10px rgba(0,0,0,0.5);
-		    pointer-events: none;
-		    font-family: sans-serif;
-		    font-size: 12px;
+		#vis1, #vis2 {
+			display: inline-block;
 		}
 	</style>
 </head>
 <body>
-	<p>Choose date range
-	<select id="date-option">
-		<option value="12">Last Year</option>
-		<option value="6">Last 6/mo</option>
-		<option value="3">Last Quarter</option>
-	</select>
-	</p>
-	<script>
-		var h = 100;
-		var w = 300;
-		var padding = 20;
-		
-		function getDate(d) {
-			var strDate = new String(d);
-			
-			var year = strDate.substr(0,4);
-			var month = strDate.substr(4,2)-1;
-			var day = strDate.substr(6,2);
-			
-			return new Date(year, month, day);
-		}
-		
-		function showHeader(ds){
-			d3.select("body").append("h1")
-				.text(ds.category + " sales (2013)");
-		}
-		
+	<div id="container1">
+		<h3>Prostitution &amp; vehicle theft, SF</h3>
+	    <p>
+	    	Choose period
+	    	<select class="selecttime" id="date-option">
+				<option value="ds1">2003</option>
+				<option value="ds2">2015</option>
+			</select>
+		</p>
+	    <div id="vis1"></div>
+	</div>
+    
+    <div id="container2">
+    	<h3>Prostitution &amp; weapon incidents</h3>
+    	<p>
+    		Choose crime 
+		    <select class="selectcrime" id="crime-option">
+				<option value="ds1">Prostitution</option>
+				<option value="ds2">Weapon laws</option>
+			</select>
+		</p>
+    	<div id="vis2"></div>
+    </div>
+    
+<script>
+var h = 300;
+var w = 300;
+var radius = 10;
+var ds;
+var padding = 60
+var barw = 500;
+var barh = 100;
+var barPadding = 1;
+var bpadding = 30;
+function toIntArray(arr) {
+    for (var i = 0; i < arr.length; i++) { 
+        arr[i] = +arr[i]; 
+    } 
+    return arr;
+}
 
+function buildLine(ds) {
+	//console.log(ds.prostitution);
+    //var intTheft = toIntArray(ds.vtheft);
+	//var maxTheft = d3.max(intTheft, function(d) { return d.vtheft; });
+	//var maxProst = d3.max(ds, function(d) { return d.prostitution; })
+	//console.log(maxProst);
+	//console.log(maxTheft);
+	var yScale = d3.scale.linear()
+		//.domain([0, 2319])
 		
-		function buildLine(ds) {
-			
-			var minDate = getDate(ds.monthlySales[0]['month']);
-			var maxDate = getDate(ds.monthlySales[ds.monthlySales.length-1]['month']);
-			
-			var tooltip = d3.select("body").append("div")
-				.attr("class","tooltip")
-				.style("opacity",0)
-			
-			var xScale = d3.time.scale()
-				.domain([minDate, maxDate])
-				.range([padding+5,w-padding]);
-			
-			var yScale = d3.scale.linear()
-				.domain([
-					0, d3.max(ds.monthlySales, function(d){ return d.sales;})
-					])
-				.range([h-padding,10]);
-			
-			var xAxisGen = d3.svg.axis().scale(xScale).orient("bottom").tickFormat(d3.time.format("%b"));
-			var yAxisGen = d3.svg.axis().scale(yScale).orient("left").ticks(4);
-					
-			var lineFun = d3.svg.line()
-				.x(function (d) { return xScale(getDate(d.month)); })
-				.y(function (d) { return yScale(d.sales); })
-				.interpolate("linear");
-			
-			var svg = d3.select("body").append("svg").attr({ width:w, height:h, "id":"svg-"+ds.category});
-			
-			var yAxis = svg.append("g").call(yAxisGen)
-				.attr("class","y-axis")
-				.attr("transform", "translate(" + padding + ", 0)");
-			
-			var xAxis = svg.append("g").call(xAxisGen)
-				.attr("class","x-axis")
-				.attr("transform","translate(0," + (h-padding) + ")");
-			
-			var viz = svg.append("path")
-				.attr({
-					d: lineFun(ds.monthlySales),
-					"stroke": "purple",
-					"stroke-width": 2,
-					"fill": "none",
-					"class": "path-"+ds.category
-				});
-			var dots = svg.selectAll("circle")
-				.data(ds.monthlySales)
-				.enter()
-				.append("circle")
-				.attr({
-					cx: function (d) { return xScale(getDate(d.month)); },
-					cy: function (d) { return yScale(d.sales); },
-					r: 4,
-					"fill": "#666666",
-					class: "circle-"+ds.category
-				})
-				.on("mouseover", function(d){
-						tooltip.transition()
-							.duration(500)
-							.style("opacity", .85)
-						tooltip.html("<strong>Sales $" + d.sales + "K</strong>")
-							.style("left", (d3.event.pageX)+"px")
-							.style("top", (d3.event.pageY - 28)+"px");
-				})
-				.on("mouseout", function(d) {
-					tooltip.transition()
-						.duration(300)
-						.style("opacity",0);
-				});
-		}
+		.domain([0, d3.max(ds, function(d) { return d.vtheft; })])
+		//.domain([0, d3.max(maxTheft)])
+		.range([h-padding,padding]);
 		
-		function updateLine(ds) {
-			
-			var minDate = getDate(ds.monthlySales[0]['month']);
-			var maxDate = getDate(ds.monthlySales[ds.monthlySales.length-1]['month']);
-			
-			var xScale = d3.time.scale()
-				.domain([minDate, maxDate])
-				.range([padding+5,w-padding]);
-			
-			var yScale = d3.scale.linear()
-				.domain([
-					0, d3.max(ds.monthlySales, function(d){ return d.sales;})
-					])
-				.range([h-padding,10]);
-			
-			var xAxisGen = d3.svg.axis().scale(xScale)
-				.orient("bottom")
-				.tickFormat(d3.time.format("%b"))
-				.ticks(ds.monthlySales.length-1);
-			var yAxisGen = d3.svg.axis().scale(yScale)
-				.orient("left")
-				.ticks(4);
-					
-			var lineFun = d3.svg.line()
-				.x(function (d) { return xScale(getDate(d.month)); })
-				.y(function (d) { return yScale(d.sales); })
-				.interpolate("linear");
-			
-			var svg = d3.select("body").select("#svg-"+ds.category);
-			
-			var yAxis = svg.selectAll("g.y-axis").call(yAxisGen);
-			
-			var xAxis = svg.selectAll("g.x-axis").call(xAxisGen);
-			
-			var viz = svg.selectAll(".path-"+ds.category)
-				.transition()
-				.duration(3000)
-				.ease("bounce")
-				.attr({
-					d: lineFun(ds.monthlySales),
-				});
-		}
+	var xScale = d3.scale.linear()
+		.domain([0, d3.max(ds, function(d) { return d.prostitution; })])
+		//.domain([0, 713])
+		.range([padding,w-padding]);
+		
+	var ayScale = d3.scale.linear()
+		.domain([0, 713])
+		.range([h-padding,padding]);
 	
-		d3.json("https://api.github.com/repos/bsullins/d3js-resources/contents/monthlySalesbyCategoryMultiple.json", function(error, data){
-		    if(error) {
-		        console.log(error);
-		    } else {
-		        console.log(data);
-		    }
-		    
-		    var decodedData = JSON.parse(window.atob(data.content));
-		    
-		    console.log(decodedData.contents);
-		    
-		    decodedData.contents.forEach(function(ds){
-		    	console.log(ds);
-		    	showHeader(ds);
-		    	buildLine(ds);
-		    });
-		    
-		    d3.select("select")
-		    	.on("change", function(d,i){
-		    		var sel = d3.select("#date-option").node().value;
-		    		
-				    var decodedData = JSON.parse(window.atob(data.content));
-
-					decodedData.contents.forEach(function(ds){
-				    	ds.monthlySales.splice(0,ds.monthlySales.length-sel);
-				    	
-				    	updateLine(ds);
-				    });
-
-		    	});
-		});
+	var radScale = d3.scale.linear()
+		.domain([0, d3.max(ds, function(d) { return d.total; })])
+		.range([0,10]);
 		
+	var xAxisGen = d3.svg.axis().scale(xScale).orient("bottom").ticks(10);
+	var yAxisGen = d3.svg.axis().scale(yScale).orient("left").ticks(10);
+		
+	var svg = d3.select("#vis1").append("svg").attr({ width:w, height:h });
 
-	</script>
+
+	
+	var dots = svg.selectAll("circle")
+			.data(ds)
+			.enter()
+			.append("circle")
+			.attr({
+				cx: function (d) { return xScale(d.prostitution); },
+				cy: function (d) { return yScale(d.vtheft); },
+				r: function (d) { return radScale(d.total); },
+				"fill": "rgba(100,100,200,0.5)",
+				class: "circle-"+ds.category
+			});
+
+		    
+	//var text = svg.selectAll("text")		    
+		    
+		    
+	var text = svg.selectAll("text")
+			.attr("class","labels")
+		   .data(ds)
+		   .enter()
+		   .append("text")
+		   .text(function(d) {
+		   		return d.dist;
+		   })
+		   .attr("x", function(d) {
+		   		return xScale(d.prostitution);
+		   })
+		   .attr("y", function(d) {
+		   		return yScale(d.vtheft);
+		   })
+		   .attr("font-family", "sans-serif")
+		   .attr("font-size", "9px")
+		   .attr("fill", "rgba(100,100,200,0.8)");
+		   
+	var yAxis = svg.append("g").call(yAxisGen)
+				.attr("class","y-axis")
+				.attr("transform", "translate(" + 60 + ", 0)")
+				.append("text")
+			    .attr("text-anchor", "end")
+			    .attr("y", 6)
+			    .attr("dy", ".75em")
+			    .attr("transform", d3.transform('translate(-50,100) rotate(-90)').toString())
+			    //.attr("transform", "translate(" + -10 + "px, 0)")
+			    .text("Vehicle Theft Incidents");
+			
+	var xAxis = svg.append("g").call(xAxisGen)
+				.attr("class","x-axis")
+				.attr("transform","translate("+ 0 +"," + (h-50) + ")")
+				.append("text")
+				.attr("class", "x-label")
+			    .attr("text-anchor", "end")
+			    .attr("x", w)
+			    .attr("y", h - 6)
+			    .attr("transform", d3.transform('translate(-100,-265)').toString())
+			    .text("Prostitution Incidents");
+}
+
+function updateLine(ds){
+	var yScale = d3.scale.linear()
+		.domain([0, 2319])
+		//.domain([0, d3.max(ds, function(d) { return d.vtheft; })])
+		.range([h-padding,padding]);
+		
+	var xScale = d3.scale.linear()
+		.domain([0, 713])
+		//.domain([0, d3.max(ds, function(d) { return d.prostitution; })])
+		.range([padding,w-padding]);
+	
+	// var ayScale = d3.scale.linear()
+	// 	.domain([0, 713])
+	// 	.range([h-padding,padding]);
+		
+	// var axScale = d3.scale.linear()
+	// 	.domain([0, 2319])
+	// 	.range([h-padding,padding]);
+	
+	var radScale = d3.scale.linear()
+		.domain([0, d3.max(ds, function(d) { return d.total; })])
+		.range([0,10]);
+	
+	var xAxisGen = d3.svg.axis().scale(xScale).orient("bottom").ticks(10);
+	var yAxisGen = d3.svg.axis().scale(yScale).orient("left").ticks(10);
+		
+	var svg = d3.select("#vis1").select("svg");
+	
+	var dots = svg.selectAll("circle")
+			.data(ds)
+			.transition()
+			.attr({
+				cx: function (d) { return xScale(d.prostitution); },
+				cy: function (d) { return yScale(d.vtheft); },
+				r: function (d) { return radScale(d.total); },
+				"fill": "rgba(100,100,200,0.5)",
+				class: "circle-"+ds.category
+			});
+
+		    
+	var text = svg.selectAll("text")
+			.attr("class","labels")
+			.data(ds)
+			.transition()
+		   .text(function(d) {
+		   		return d.dist;
+		   })
+		   .attr("x", function(d) {
+		   		return xScale(d.prostitution);
+		   })
+		   .attr("y", function(d) {
+		   		return yScale(d.vtheft);
+		   })
+		   .attr("font-family", "sans-serif")
+		   .attr("font-size", "9px")
+		   .attr("fill", "rgba(100,100,200,0.8)");
+		   
+	// var yAxis = svg.selectAll("g.y-axis").call(yAxisGen)
+	// 			.attr("class","y-axis")
+	// 			.attr("transform", "translate(" + 40 + ", 0)");
+			
+	// var xAxis = svg.selectAll("g.x-axis").call(xAxisGen)
+	// 			.attr("class","x-axis")
+	// 			.attr("transform","translate("+ 0 +"," + (h-50) + ")");
+}
+
+
+			
+function buildBar(ds) {
+			var scale = d3.scale.linear()
+        		.domain([0, d3.max(ds, function(d) { return d.crimes; })])
+        		//.domain([0, 713])
+        		.range([0,100,]);
+			//Create SVG element
+			var axisscale = d3.scale.linear()
+                .range([2003, 2015])
+                .domain([0, 12])
+            
+			
+			var svg = d3.select("#vis2")
+						.append("svg")
+						.attr("width", barw)
+						.attr("height", barh+40);
+			
+    			
+			svg.selectAll("rect")
+			   .data(ds)
+			   .enter()
+			   .append("rect")
+			   .attr("x", function(d, i) {
+			   		return i * (barw / 13);
+			   })
+			   .attr("y", function (d) { return (barh - scale(d.crimes)); })
+			   .attr("width", barw / 13 - barPadding)
+			   .attr("height", function (d) { return scale(d.crimes); })
+			   .attr("fill", function (d) { return ("rgb(0, 0, " + (255 - 3 * Math.floor(scale(d.crimes))) + ")"); })
+                ;
+			svg.selectAll("text.year")
+			   .data(ds)
+			   .enter()
+			   .append("text")
+			   .text(function(d, i) {
+			   		return String(2003+i);
+			   })
+			   .attr("class", "year")
+			   .attr("x", function(d, i) {
+			   		return i * (barw / ds.length) + 5;
+			   })
+			   .attr("y", function (d) { return (barh + 15); })
+			   .attr("font-family", "sans-serif")
+			   .attr("font-size", "11px")
+			   .attr("fill", "#000");
+			   
+			 svg.selectAll("text.crimes")
+			   .data(ds)
+			   .enter()
+			   .append("text")
+			   .text(function(d) {
+			   		return d.crimes;
+			   })
+			   .attr("class", "crimes")
+			   .attr("x", function(d, i) {
+			   		return i * (barw / ds.length) + 5;
+			   })
+			   .attr("y", function (d) { return (barh - scale(d.crimes) + 15); })
+			   .attr("font-family", "sans-serif")
+			   .attr("font-size", "11px")
+			   .attr("fill", "#fff");
+}
+
+function updateBar(ds) {
+			var scale = d3.scale.linear()
+        		.domain([0, d3.max(ds, function(d) { return d.crimes; })])
+        		//.domain([0, 713])
+        		.range([0,100,]);
+			//Create SVG element
+			var svg = d3.select("#vis2").select("svg");
+			
+			svg.selectAll("rect")
+			   .data(ds)
+			   .transition()
+			   .attr("x", function(d, i) {
+			   		return i * (barw / 13);
+			   })
+			   .attr("y", function (d) { return (barh - scale(d.crimes)); })
+			   .attr("width", barw / 13 - barPadding)
+			   .attr("height", function (d) { return scale(d.crimes); })
+			   .attr("fill", function (d) { return ("rgb(0, 0, " + (255 - 3 * Math.floor(scale(d.crimes))) + ")"); })
+                ;
+			svg.selectAll("text.crimes")
+			   .data(ds)
+			   .transition()
+			   .text(function(d) {
+			   		return d.crimes;
+			   })
+			   .attr("x", function(d, i) {
+			   		return i * (barw / ds.length) + 5;
+			   })
+			   .attr("y", function (d) { return (barh - scale(d.crimes) + 15); })
+			   .attr("font-family", "sans-serif")
+			   .attr("font-size", "11px")
+			   .attr("fill", "#fff");
+}
+
+d3.csv("data/stats2003.csv", function(error1, data1){
+    if(error1) {
+        console.log(error1);
+    } else {
+        console.log('Success');
+        data1.forEach(function(d){ d['total'] = +d['total']; });
+        data1.forEach(function(d){ d['vtheft'] = +d['vtheft']; });
+        data1.forEach(function(d){ d['prostitution'] = +d['prostitution']; });
+        var ds1 = data1;
+        d3.csv("data/stats2015.csv", function(error2, data2){
+		    if(error2) {
+		        console.log(error2);
+		    } else {
+		        console.log('Success');
+		        data2.forEach(function(d){ d['total'] = +d['total']; });
+		        data2.forEach(function(d){ d['vtheft'] = +d['vtheft']; });
+		        data2.forEach(function(d){ d['prostitution'] = +d['prostitution']; });
+		        var ds2 = data2;
+		    }
+		       			d3.csv("data/prosts.csv", function(error1, data1){
+                if(error1) {
+                    console.log(error1);
+                } else {
+                    console.log('Success');
+                    data1.forEach(function(d){ d['crimes'] = +d['crimes']; });
+                    data1.forEach(function(d){ d['year'] = +d['year']; });
+                    var dataset = data1;
+                    console.log(dataset);
+                    d3.csv("data/weapon.csv", function(error2, data2){
+            		    if(error2) {
+            		        console.log(error2);
+            		    } else {
+            		        console.log('Success');
+            		        var dataset2 = data2;
+            		    }
+            		    buildBar(dataset);
+            		    
+				    	buildLine(ds1);
+						//console.log(ds[1].dist);
+						d3.select(".selecttime")
+						.on("change", function(d,i){
+							var sel = "";
+							sel = String(d3.select("#date-option").node().value);
+						    if (sel == "ds1"){
+						    	console.log("1");
+								updateLine(ds1);
+						    }
+							else {
+								updateLine(ds2);
+						    	console.log("2");
+								}
+							});
+		    			d3.select(".selectcrime")
+            			.on("change", function(d,i){
+            				var sel = "";
+            				sel = String(d3.select("#crime-option").node().value);
+            			    if (sel == "ds1"){
+            			    	console.log("1");
+            					updateBar(dataset);
+            			    }
+            				else {
+            					updateBar(dataset2);
+            			    	console.log("2");
+			            		}
+			    			});
+					});	
+				}
+			});
+        });
+    }
+
+
+});
+</script>
 </body>
 </html>

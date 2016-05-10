@@ -1,397 +1,618 @@
 <!DOCTYPE html>
-<html lang="en">
+<meta charset="utf-8">
 <head>
-	<meta charset="UTF-8">
-	<title>Exercises week 7</title>
-	<script src="js/d3.min.js"></script>
-	<style type="text/css">
-		.x-axis path, .y-axis path,
-		.x-axis line, .y-axis line {
-			fill: none;
-			stroke: rgba(100,100,200,1);
-			shape-rendering: crispEdges;
-		}
-		
-		.x-axis text, .y-axis text {
-			font-family: sans-serif;
-			font-size: 10px;
-			color: rgba(100,100,200,0.7);
-		}
-		#vis1, #vis2 {
-			display: inline-block;
-		}
-	</style>
+<style>
+
+body {
+  font: 12px sans-serif;
+  background-color: #eee;
+}
+
+.container {
+    width: 1080px;
+    margin: 40px auto 0 auto;
+    padding: 60px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.x.axis path {
+  display: none;
+}
+
+p#male.selected, p#female.selected {
+    border: 1px solid #999;
+    font-weight: bold;
+    background-color: #ddd;
+    color: #999;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+
+p#male, p#female {
+    display: inline;
+    text-transform: uppercase;
+    border: 1px solid #fff;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 10px;
+    margin: 10px;
+    cursor: pointer;
+}
+
+p#male {
+    background-color: rgb(138, 137, 166);
+}
+
+p#female {
+    background-color: rgb(152, 171, 197);
+}
+
+</style>
 </head>
 <body>
-	<div id="container1">
-		<h3>Prostitution &amp; vehicle theft, SF</h3>
-	    <p>
-	    	Choose period
-	    	<select class="selecttime" id="date-option">
-				<option value="ds1">2003</option>
-				<option value="ds2">2015</option>
-			</select>
-		</p>
-	    <div id="vis1"></div>
-	</div>
+<div class="container">
+    <h2>Top books by gender (ratio)</h2>
+    <p>Some prejudices about gender seem to be true: Females loan more books about diets, while males like to read about stamps.</p><br>
+    <p id="female"> Top 25 female book loans </p>
+    <p id="male"> Top 25 male book loans </p>
+    <div id="top25"></div>
+    <h2>Ages of book readers</h2>
+    <p>The difference between what people of different ages read is noticable in books such as Den Gode Opgave and Jesus, Pengene og Livet.<br>
+    The former (a study book) is mostly read by younger audiences, while the latter (a biography) have a much older audience.</p>
+    <p>Also notice the very young readers (less than 5 years) loaning heavy books such as Zornig's biography depicting her awful childhood.<br>
+    This could be interpreted as either bad data or people using their child's loaner card to be allowed to keep their book a bit longer.</p>
+    Choose book (top 10 female loans) <select name="" id="book">
+        <option value="0">Zornig - vrede er mit mellemnavn</option>
+        <option value="1">Den gode opgave</option>
+        <option value="2">Sværkeslægten</option>
+        <option value="3">Turen går til London</option>
+        <option value="4">Vi kan sove i flyvemaskinen</option>
+        <option value="5">Turen går til Hamburg og Nordtyskland</option>
+        <option value="6">3096 dage</option>
+        <option value="7">Turen går til Berlin</option>
+        <option value="8">Jesus, pengene og livet</option>
+        <option value="9">Turen går til Tyrkiet</option>
+    </select>
+    <div id="top10"></div>
     
-    <div id="container2">
-    	<h3>Prostitution &amp; weapon incidents</h3>
-    	<p>
-    		Choose crime 
-		    <select class="selectcrime" id="crime-option">
-				<option value="ds1">Prostitution</option>
-				<option value="ds2">Weapon laws</option>
-			</select>
-		</p>
-    	<div id="vis2"></div>
-    </div>
-    
+    <h2>Book loans during the year</h2>
+    <p>Again, we see a clear trend in loans of the study book Den Gode Opgave, which seems to drop drastically during the summer vacation and grow again once the fall semester begins.<br>
+    On the other hand, the diet book 5:2 Kuren has its peak at summertime.</p>
+    Choose book (top 10 loans in 2014) <select name="" id="year">
+        <option value="0">Så skal der leves!</option>
+        <option value="1">Forfulgt</option>
+        <option value="2">Den gode opgave</option>
+        <option value="3">Den hemmelige socialdemokrat</option>
+        <option value="4">Ikke et sekund spildt</option>
+        <option value="5">Turen går til Hamburg og Nordtyskland</option>
+        <option value="6">Jesus, pengene og livet</option>
+        <option value="7">5:2 kuren</option>
+        <option value="8">Turen går til London</option>
+        <option value="9">Zornig - vrede er mit mellemnavn</option>
+    </select>
+    <div id="book_by_month"></div>
+</div>    
+
+<script src="//d3js.org/d3.v3.min.js"></script>
 <script>
-var h = 300;
-var w = 300;
-var radius = 10;
-var ds;
-var padding = 60
-var barw = 500;
-var barh = 100;
-var barPadding = 1;
-var bpadding = 30;
-function toIntArray(arr) {
-    for (var i = 0; i < arr.length; i++) { 
-        arr[i] = +arr[i]; 
-    } 
-    return arr;
+
+
+var margin = {top: 20, right: 20, bottom: 60, left: 60},
+    width = 960 - margin.left - margin.right,
+    height = 560 - margin.top - margin.bottom;
+
+var color = d3.scale.ordinal()
+    .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b"]);
+
+function buildBar(dataset) {
+    var genderNames = d3.keys(dataset[0]).filter(function(key) { return (key !== "title") && (key !== 'female_count') && (key !== 'male_count') ; });
+    
+      dataset.forEach(function(d) {
+        d.gender = genderNames.map(function(name) { 
+          return {name: name, value: +d[name]}; });
+      });
+
+    var x0 = d3.scale.ordinal()
+        .rangeRoundBands([0, width], .1);
+    
+    var x1 = d3.scale.ordinal();
+    
+    var y = d3.scale.linear()
+        .range([height, 0]);    
+        
+    x0.domain(dataset.map(function(d) { return d.title; }));
+    x1.domain(genderNames).rangeRoundBands([0, x0.rangeBand()]);
+    y.domain([0, d3.max(dataset, function(d) { return d3.max(d.gender, function(d) { return d.value; }); })]);
+        
+    var xAxis = d3.svg.axis()
+        .scale(x0)
+        .orient("bottom");
+    
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .tickFormat(d3.format(".2s"));
+    
+    var svg = d3.select("#top25").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom + 240)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+      .selectAll("text")  
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("text-overflow", "ellipsis")
+            .attr("transform", function(d) {
+                return "rotate(-65)" 
+                });
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -50)
+      .attr("x", -150)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Ratio of Loans / No. of loans");
+
+  var title = svg.selectAll(".title")
+      .data(dataset)
+    .enter().append("g")
+      .attr("class", "title")
+      .attr("transform", function(d) { return "translate(" + x0(d.title) + ",0)"; });
+
+  title.selectAll("rect")
+      .data(function(d) { return d.gender; })
+        .enter().append("rect")
+      .attr("width", x1.rangeBand())
+      .attr("x", function(d) { return x1(d.name); })
+      .attr("y", function(d) { return y(d.value); })
+      .attr("height", function(d) { return height - y(d.value); })
+      .style("fill", function(d) { return color(d.name); });
+
+  var legend = svg.selectAll(".legend")
+      .data(genderNames.slice().reverse())
+    .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+  legend.append("rect")
+      .attr("x", width - 18)
+      .attr("width", 18)
+      .attr("height", 18)
+      .style("fill", color);
+
+  legend.append("text")
+      .attr("x", width - 24)
+      .attr("y", 9)
+      .attr("dy", ".35em")
+      .style("text-anchor", "end")
+      .text(function(d) { return d; });
 }
 
-function buildLine(ds) {
-	//console.log(ds.prostitution);
-    //var intTheft = toIntArray(ds.vtheft);
-	//var maxTheft = d3.max(intTheft, function(d) { return d.vtheft; });
-	//var maxProst = d3.max(ds, function(d) { return d.prostitution; })
-	//console.log(maxProst);
-	//console.log(maxTheft);
-	var yScale = d3.scale.linear()
-		//.domain([0, 2319])
-		
-		.domain([0, d3.max(ds, function(d) { return d.vtheft; })])
-		//.domain([0, d3.max(maxTheft)])
-		.range([h-padding,padding]);
-		
-	var xScale = d3.scale.linear()
-		.domain([0, d3.max(ds, function(d) { return d.prostitution; })])
-		//.domain([0, 713])
-		.range([padding,w-padding]);
-		
-	var ayScale = d3.scale.linear()
-		.domain([0, 713])
-		.range([h-padding,padding]);
-	
-	var radScale = d3.scale.linear()
-		.domain([0, d3.max(ds, function(d) { return d.total; })])
-		.range([0,10]);
-		
-	var xAxisGen = d3.svg.axis().scale(xScale).orient("bottom").ticks(10);
-	var yAxisGen = d3.svg.axis().scale(yScale).orient("left").ticks(10);
-		
-	var svg = d3.select("#vis1").append("svg").attr({ width:w, height:h });
+function updateBar(temp_data){
 
+    var genderNames = d3.keys(temp_data[0]).filter(function(key) { return (key !== "title") && (key !== 'female_count') && (key !== 'male_count') ; });
+    
+    temp_data.forEach(function(d) {
+        d.gender = genderNames.map(function(name) { 
+           return {name: name, value: +d[name]}; });
+    });
+    
+    
+    var x0 = d3.scale.ordinal()
+    .rangeRoundBands([0, width], .1);
+    
+    var x1 = d3.scale.ordinal();
+    
+    var y = d3.scale.linear()
+        .range([height, 0]);  
 
-	
-	var dots = svg.selectAll("circle")
-			.data(ds)
-			.enter()
-			.append("circle")
-			.attr({
-				cx: function (d) { return xScale(d.prostitution); },
-				cy: function (d) { return yScale(d.vtheft); },
-				r: function (d) { return radScale(d.total); },
-				"fill": "rgba(100,100,200,0.5)",
-				class: "circle-"+ds.category
-			});
+    x0.domain(temp_data.map(function(d) { return d.title; }));
+    x1.domain(genderNames).rangeRoundBands([0, x0.rangeBand()]);
+    y.domain([0, d3.max(temp_data, function(d) { return d3.max(d.gender, function(d) { return d.value; }); })]);
 
-		    
-	//var text = svg.selectAll("text")		    
-		    
-		    
-	var text = svg.selectAll("text")
-			.attr("class","labels")
-		   .data(ds)
-		   .enter()
-		   .append("text")
-		   .text(function(d) {
-		   		return d.dist;
-		   })
-		   .attr("x", function(d) {
-		   		return xScale(d.prostitution);
-		   })
-		   .attr("y", function(d) {
-		   		return yScale(d.vtheft);
-		   })
-		   .attr("font-family", "sans-serif")
-		   .attr("font-size", "9px")
-		   .attr("fill", "rgba(100,100,200,0.8)");
-		   
-	var yAxis = svg.append("g").call(yAxisGen)
-				.attr("class","y-axis")
-				.attr("transform", "translate(" + 60 + ", 0)")
-				.append("text")
-			    .attr("text-anchor", "end")
-			    .attr("y", 6)
-			    .attr("dy", ".75em")
-			    .attr("transform", d3.transform('translate(-50,100) rotate(-90)').toString())
-			    //.attr("transform", "translate(" + -10 + "px, 0)")
-			    .text("Vehicle Theft Incidents");
-			
-	var xAxis = svg.append("g").call(xAxisGen)
-				.attr("class","x-axis")
-				.attr("transform","translate("+ 0 +"," + (h-50) + ")")
-				.append("text")
-				.attr("class", "x-label")
-			    .attr("text-anchor", "end")
-			    .attr("x", w)
-			    .attr("y", h - 6)
-			    .attr("transform", d3.transform('translate(-100,-265)').toString())
-			    .text("Prostitution Incidents");
+    var xAxis = d3.svg.axis()
+        .scale(x0)
+        .orient("bottom");
+    
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .tickFormat(d3.format(".2s"));
+    
+    var svg = d3.select("#top25").select("svg");
+    
+    svg.selectAll(".x.axis")
+      .call(xAxis)
+      .selectAll("text")  
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("text-overflow", "ellipsis")
+            .attr("transform", function(d) {
+                return "rotate(-65)" 
+                });
+    
+    var title = svg.selectAll(".title")
+        .data(temp_data)
+    
+    title.selectAll("rect")
+        .data(function(d) { return d.gender; })
+        .transition()
+        .attr("width", x1.rangeBand())
+        .attr("x", function(d) { return x1(d.name); })
+        .attr("y", function(d) { return y(d.value); })
+        .attr("height", function(d) { return height - y(d.value); })
+        .style("fill", function(d) { return color(d.name); });    
 }
 
-function updateLine(ds){
-	var yScale = d3.scale.linear()
-		.domain([0, 2319])
-		//.domain([0, d3.max(ds, function(d) { return d.vtheft; })])
-		.range([h-padding,padding]);
-		
-	var xScale = d3.scale.linear()
-		.domain([0, 713])
-		//.domain([0, d3.max(ds, function(d) { return d.prostitution; })])
-		.range([padding,w-padding]);
-	
-	// var ayScale = d3.scale.linear()
-	// 	.domain([0, 713])
-	// 	.range([h-padding,padding]);
-		
-	// var axScale = d3.scale.linear()
-	// 	.domain([0, 2319])
-	// 	.range([h-padding,padding]);
-	
-	var radScale = d3.scale.linear()
-		.domain([0, d3.max(ds, function(d) { return d.total; })])
-		.range([0,10]);
-	
-	var xAxisGen = d3.svg.axis().scale(xScale).orient("bottom").ticks(10);
-	var yAxisGen = d3.svg.axis().scale(yScale).orient("left").ticks(10);
-		
-	var svg = d3.select("#vis1").select("svg");
-	
-	var dots = svg.selectAll("circle")
-			.data(ds)
-			.transition()
-			.attr({
-				cx: function (d) { return xScale(d.prostitution); },
-				cy: function (d) { return yScale(d.vtheft); },
-				r: function (d) { return radScale(d.total); },
-				"fill": "rgba(100,100,200,0.5)",
-				class: "circle-"+ds.category
-			});
+function buildAgeBar(dataset) {
+    var genderNames = d3.keys(dataset[0]).filter(function(key) { return (key == "0") ; });
+    
+      dataset.forEach(function(d) {
+        d.gender = genderNames.map(function(name) { 
+          return {name: name, value: +d[name]}; });
+      });
 
-		    
-	var text = svg.selectAll("text")
-			.attr("class","labels")
-			.data(ds)
-			.transition()
-		   .text(function(d) {
-		   		return d.dist;
-		   })
-		   .attr("x", function(d) {
-		   		return xScale(d.prostitution);
-		   })
-		   .attr("y", function(d) {
-		   		return yScale(d.vtheft);
-		   })
-		   .attr("font-family", "sans-serif")
-		   .attr("font-size", "9px")
-		   .attr("fill", "rgba(100,100,200,0.8)");
-		   
-	// var yAxis = svg.selectAll("g.y-axis").call(yAxisGen)
-	// 			.attr("class","y-axis")
-	// 			.attr("transform", "translate(" + 40 + ", 0)");
-			
-	// var xAxis = svg.selectAll("g.x-axis").call(xAxisGen)
-	// 			.attr("class","x-axis")
-	// 			.attr("transform","translate("+ 0 +"," + (h-50) + ")");
+    var x0 = d3.scale.ordinal()
+        .rangeRoundBands([0, width], .1);
+    
+    var x1 = d3.scale.ordinal();
+    
+    var y = d3.scale.linear()
+        .range([height, 0]);    
+        
+    x0.domain(dataset.map(function(d) { return d.age; }));
+    x1.domain(genderNames).rangeRoundBands([0, x0.rangeBand()]);
+    y.domain([0, 1110]);
+    //y.domain([0, d3.max(dataset, function(d) { return d3.max(d.gender, function(d) { return d.value; }); })]);
+
+    var formatxAxis = d3.format('.0f');
+    
+    var xAxis = d3.svg.axis()
+        .scale(x0)
+        //.scale(d3.range(0, 101, 10))
+        //.tickValues(d3.range(0, 101, 10))
+        //.ticks(5)
+        .tickFormat(formatxAxis)
+        .orient("bottom");
+    
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .tickFormat(d3.format(".2s"));
+    
+    var svg = d3.select("#top10").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+      .selectAll("text")  
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("text-overflow", "ellipsis")
+            .attr("font-size", "8px")
+            .attr("transform", function(d) {
+                return "rotate(-65)" 
+                });
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -50)
+      .attr("x", -150)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Number of book loans");
+
+  var title = svg.selectAll(".title")
+      .data(dataset)
+    .enter().append("g")
+      .attr("class", "title")
+      .attr("transform", function(d) { return "translate(" + x0(d.age) + ",0)"; });
+
+  title.selectAll("rect")
+      .data(function(d) { return d.gender; })
+        .enter().append("rect")
+      .attr("width", x1.rangeBand())
+      .attr("x", function(d) { return x1(d.name); })
+      .attr("y", function(d) { return y(d.value); })
+      .attr("height", function(d) { return height - y(d.value); })
+      .style("fill", function(d) { return color(d.name); });
+
 }
 
+function updateAgeBar(temp_data, col){
 
-			
-function buildBar(ds) {
-			var scale = d3.scale.linear()
-        		.domain([0, d3.max(ds, function(d) { return d.crimes; })])
-        		//.domain([0, 713])
-        		.range([0,100,]);
-			//Create SVG element
-			var axisscale = d3.scale.linear()
-                .range([2003, 2015])
-                .domain([0, 12])
+    var genderNames = d3.keys(temp_data[0]).filter(function(key) { return (key == col) ; });
+    
+    temp_data.forEach(function(d) {
+        d.gender = genderNames.map(function(name) { 
+           return {name: name, value: +d[name]}; });
+    });
+    
+    
+    var x0 = d3.scale.ordinal()
+    .rangeRoundBands([0, width], .1);
+    
+    var x1 = d3.scale.ordinal();
+    
+    var y = d3.scale.linear()
+        .range([height, 0]);  
+
+    x0.domain(temp_data.map(function(d) { return d.age; }));
+    x1.domain(genderNames).rangeRoundBands([0, x0.rangeBand()]);
+    y.domain([0, 1110]);
+    
+    var formatxAxis = d3.format('.0f');
+    
+    var xAxis = d3.svg.axis()
+        .scale(x0)
+        .tickFormat(formatxAxis)
+        .orient("bottom");
+    
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .tickFormat(d3.format(".2s"));
+    
+    var svg = d3.select("#top10").select("svg");
+    
+    svg.selectAll(".x.axis")
+      .call(xAxis)
+      .selectAll("text")  
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("text-overflow", "ellipsis")
+            .attr("transform", function(d) {
+                return "rotate(-65)" 
+                });
+    
+    var title = svg.selectAll(".title")
+        .data(temp_data)
+    
+    title.selectAll("rect")
+        .data(function(d) { return d.gender; })
+        .transition()
+        .attr("width", x1.rangeBand())
+        .attr("x", function(d) { return x1(d.name); })
+        .attr("y", function(d) { return y(d.value); })
+        .attr("height", function(d) { return height - y(d.value); })
+        .style("fill", function(d) { return color(d.name); });    
+}
+
+function buildMonthBar(dataset) {
+    var genderNames = d3.keys(dataset[0]).filter(function(key) { return (key == "0") ; });
+    
+      dataset.forEach(function(d) {
+        d.gender = genderNames.map(function(name) { 
+          return {name: name, value: +d[name]}; });
+      });
+
+    var x0 = d3.scale.ordinal()
+        .rangeRoundBands([0, width], .1);
+    
+    var x1 = d3.scale.ordinal();
+    
+    var y = d3.scale.linear()
+        .range([height, 0]);    
+        
+    x0.domain(dataset.map(function(d) { return d.month; }));
+    x1.domain(genderNames).rangeRoundBands([0, x0.rangeBand()]);
+    y.domain([0, 600]);
+    //y.domain([0, d3.max(dataset, function(d) { return d3.max(d.gender, function(d) { return d.value; }); })]);
+    
+    var xAxis = d3.svg.axis()
+        .scale(x0)
+        //.scale(d3.range(0, 101, 10))
+        //.tickValues(d3.range(0, 101, 10))
+        //.ticks(5)
+        .orient("bottom");
+    
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .tickFormat(d3.format(".2s"));
+    
+    var svg = d3.select("#book_by_month").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+      .selectAll("text")  
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("text-overflow", "ellipsis")
+            .attr("transform", function(d) {
+                return "rotate(-65)" 
+                });
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -50)
+      .attr("x", -150)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Number of book loans");
+
+  var title = svg.selectAll(".title")
+      .data(dataset)
+    .enter().append("g")
+      .attr("class", "title")
+      .attr("transform", function(d) { return "translate(" + x0(d.month) + ",0)"; });
+
+  title.selectAll("rect")
+      .data(function(d) { return d.gender; })
+        .enter().append("rect")
+      .attr("width", x1.rangeBand())
+      .attr("x", function(d) { return x1(d.name); })
+      .attr("y", function(d) { return y(d.value); })
+      .attr("height", function(d) { return height - y(d.value); })
+      .style("fill", function(d) { return color(d.name); });
+
+}
+
+function updateMonthBar(temp_data, col){
+
+    var genderNames = d3.keys(temp_data[0]).filter(function(key) { return (key == col) ; });
+    
+    temp_data.forEach(function(d) {
+        d.gender = genderNames.map(function(name) { 
+           return {name: name, value: +d[name]}; });
+    });
+    
+    
+    var x0 = d3.scale.ordinal()
+    .rangeRoundBands([0, width], .1);
+    
+    var x1 = d3.scale.ordinal();
+    
+    var y = d3.scale.linear()
+        .range([height, 0]);  
+
+    x0.domain(temp_data.map(function(d) { return d.month; }));
+    x1.domain(genderNames).rangeRoundBands([0, x0.rangeBand()]);
+    y.domain([0, 600]);
+    
+    
+    var xAxis = d3.svg.axis()
+        .scale(x0)
+        .orient("bottom");
+    
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .tickFormat(d3.format(".2s"));
+    
+    var svg = d3.select("#book_by_month").select("svg");
+    
+    svg.selectAll(".x.axis")
+      .call(xAxis)
+      .selectAll("text")  
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("text-overflow", "ellipsis")
+            .attr("transform", function(d) {
+                return "rotate(-65)" 
+                });
+    
+    var title = svg.selectAll(".title")
+        .data(temp_data)
+    
+    title.selectAll("rect")
+        .data(function(d) { return d.gender; })
+        .transition()
+        .attr("width", x1.rangeBand())
+        .attr("x", function(d) { return x1(d.name); })
+        .attr("y", function(d) { return y(d.value); })
+        .attr("height", function(d) { return height - y(d.value); })
+        .style("fill", function(d) { return color(d.name); });    
+}
+      
+d3.csv("data/fem_top25.csv", function(error, data) {
+  d3.csv("data/mal_top25.csv", function(error,data2){
+      d3.csv("data/fem_top10_by_age.csv", function(error,data3){
+          d3.csv("data/loans_by_month.csv", function(error,data4){
+          if (error) throw error;
+            dataset = data;
+            dataset2 = data2;
+            dataset3 = data3;
+            dataset4 = data4;
+            dataset_total = data.concat(data2);
+        
+          
+            buildBar(dataset);
+            var selector = d3.select("#female");
+            selector.classed("selected", true);
             
-			
-			var svg = d3.select("#vis2")
-						.append("svg")
-						.attr("width", barw)
-						.attr("height", barh+40);
-			
-    			
-			svg.selectAll("rect")
-			   .data(ds)
-			   .enter()
-			   .append("rect")
-			   .attr("x", function(d, i) {
-			   		return i * (barw / 13);
-			   })
-			   .attr("y", function (d) { return (barh - scale(d.crimes)); })
-			   .attr("width", barw / 13 - barPadding)
-			   .attr("height", function (d) { return scale(d.crimes); })
-			   .attr("fill", function (d) { return ("rgb(0, 0, " + (255 - 3 * Math.floor(scale(d.crimes))) + ")"); })
-                ;
-			svg.selectAll("text.year")
-			   .data(ds)
-			   .enter()
-			   .append("text")
-			   .text(function(d, i) {
-			   		return String(2003+i);
-			   })
-			   .attr("class", "year")
-			   .attr("x", function(d, i) {
-			   		return i * (barw / ds.length) + 5;
-			   })
-			   .attr("y", function (d) { return (barh + 15); })
-			   .attr("font-family", "sans-serif")
-			   .attr("font-size", "11px")
-			   .attr("fill", "#000");
-			   
-			 svg.selectAll("text.crimes")
-			   .data(ds)
-			   .enter()
-			   .append("text")
-			   .text(function(d) {
-			   		return d.crimes;
-			   })
-			   .attr("class", "crimes")
-			   .attr("x", function(d, i) {
-			   		return i * (barw / ds.length) + 5;
-			   })
-			   .attr("y", function (d) { return (barh - scale(d.crimes) + 15); })
-			   .attr("font-family", "sans-serif")
-			   .attr("font-size", "11px")
-			   .attr("fill", "#fff");
-}
+            buildAgeBar(dataset3);
+            
+            buildMonthBar(dataset4);
+        
+            d3.selectAll("p")
+                    .on("click", function() {
+                    //See which p was clicked
+                    var paragraphID = d3.select(this).attr("id");
+                    
+                    if (paragraphID == "male") {
+                      var temp_data = dataset2;
+                      updateBar(temp_data);
+                      var selector = d3.select("#male");
+                      selector.classed("selected", true);
+                      var unselector = d3.select("#female");
+                      unselector.classed("selected", false);
+                    }
+                    if (paragraphID == "female") {
+                      //Remove a value
+                      var temp_data = dataset;
+                      updateBar(temp_data);
+                      var selector = d3.select("#female");
+                      selector.classed("selected", true);
+                      var unselector = d3.select("#male");
+                      unselector.classed("selected", false);
+                    } 
+                
+                    });
+            d3.select("#book").on("change", changebook)
+                function changebook() {
+                var sel = document.getElementById('book');
+                var val = sel.options[sel.selectedIndex].value;
+                updateAgeBar(dataset3, val);
+            }
 
-function updateBar(ds) {
-			var scale = d3.scale.linear()
-        		.domain([0, d3.max(ds, function(d) { return d.crimes; })])
-        		//.domain([0, 713])
-        		.range([0,100,]);
-			//Create SVG element
-			var svg = d3.select("#vis2").select("svg");
-			
-			svg.selectAll("rect")
-			   .data(ds)
-			   .transition()
-			   .attr("x", function(d, i) {
-			   		return i * (barw / 13);
-			   })
-			   .attr("y", function (d) { return (barh - scale(d.crimes)); })
-			   .attr("width", barw / 13 - barPadding)
-			   .attr("height", function (d) { return scale(d.crimes); })
-			   .attr("fill", function (d) { return ("rgb(0, 0, " + (255 - 3 * Math.floor(scale(d.crimes))) + ")"); })
-                ;
-			svg.selectAll("text.crimes")
-			   .data(ds)
-			   .transition()
-			   .text(function(d) {
-			   		return d.crimes;
-			   })
-			   .attr("x", function(d, i) {
-			   		return i * (barw / ds.length) + 5;
-			   })
-			   .attr("y", function (d) { return (barh - scale(d.crimes) + 15); })
-			   .attr("font-family", "sans-serif")
-			   .attr("font-size", "11px")
-			   .attr("fill", "#fff");
-}
-
-d3.csv("data/stats2003.csv", function(error1, data1){
-    if(error1) {
-        console.log(error1);
-    } else {
-        console.log('Success');
-        data1.forEach(function(d){ d['total'] = +d['total']; });
-        data1.forEach(function(d){ d['vtheft'] = +d['vtheft']; });
-        data1.forEach(function(d){ d['prostitution'] = +d['prostitution']; });
-        var ds1 = data1;
-        d3.csv("data/stats2015.csv", function(error2, data2){
-		    if(error2) {
-		        console.log(error2);
-		    } else {
-		        console.log('Success');
-		        data2.forEach(function(d){ d['total'] = +d['total']; });
-		        data2.forEach(function(d){ d['vtheft'] = +d['vtheft']; });
-		        data2.forEach(function(d){ d['prostitution'] = +d['prostitution']; });
-		        var ds2 = data2;
-		    }
-		       			d3.csv("data/prosts.csv", function(error1, data1){
-                if(error1) {
-                    console.log(error1);
-                } else {
-                    console.log('Success');
-                    data1.forEach(function(d){ d['crimes'] = +d['crimes']; });
-                    data1.forEach(function(d){ d['year'] = +d['year']; });
-                    var dataset = data1;
-                    console.log(dataset);
-                    d3.csv("data/weapon.csv", function(error2, data2){
-            		    if(error2) {
-            		        console.log(error2);
-            		    } else {
-            		        console.log('Success');
-            		        var dataset2 = data2;
-            		    }
-            		    buildBar(dataset);
-            		    
-				    	buildLine(ds1);
-						//console.log(ds[1].dist);
-						d3.select(".selecttime")
-						.on("change", function(d,i){
-							var sel = "";
-							sel = String(d3.select("#date-option").node().value);
-						    if (sel == "ds1"){
-						    	console.log("1");
-								updateLine(ds1);
-						    }
-							else {
-								updateLine(ds2);
-						    	console.log("2");
-								}
-							});
-		    			d3.select(".selectcrime")
-            			.on("change", function(d,i){
-            				var sel = "";
-            				sel = String(d3.select("#crime-option").node().value);
-            			    if (sel == "ds1"){
-            			    	console.log("1");
-            					updateBar(dataset);
-            			    }
-            				else {
-            					updateBar(dataset2);
-            			    	console.log("2");
-			            		}
-			    			});
-					});	
-				}
-			});
+            d3.select("#year").on("change", changebook2)
+                function changebook2() {
+                var sel = document.getElementById('year');
+                var val = sel.options[sel.selectedIndex].value;
+                updateMonthBar(dataset4, val);
+            }
+            
+            });
         });
-    }
-
+    
+    });
 
 });
 </script>
-</body>
-</html>
